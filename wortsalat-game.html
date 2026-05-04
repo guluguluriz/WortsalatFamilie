@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wortsalat Game</title>
+
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Titan One for titles, Nunito for text -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Titan+One&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --clr-ww-blue: #3b82f6;
+      --clr-ww-darkblue: #1e3a8a;
+      --clr-ww-yellow: #fcd34d;
+      --clr-ww-red: #ef4444;
+      --clr-ww-white: #ffffff;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: var(--clr-ww-blue);
+      color: #1e293b;
+      min-height: 100vh;
+      overflow-x: hidden;
+      margin: 0;
+    }
+
+    .font-title {
+      font-family: 'Titan One', cursive;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Wordwall Backgrounds */
+    .bg-sunburst {
+      background-color: var(--clr-ww-blue);
+      background-image: repeating-conic-gradient(var(--clr-ww-darkblue) 0 15deg,
+          transparent 15deg 30deg);
+      background-position: center center;
+    }
+
+    .bg-blob {
+      background-color: var(--clr-ww-blue);
+      position: relative;
+    }
+
+    .bg-blob::before,
+    .bg-blob::after {
+      content: "";
+      position: absolute;
+      width: 150vw;
+      height: 150vw;
+      background: rgba(30, 58, 138, 0.2);
+      border-radius: 40%;
+      z-index: -1;
+      animation: rotateBlob 40s linear infinite;
+    }
+
+    .bg-blob::before {
+      top: -100vw;
+      left: -50vw;
+    }
+
+    .bg-blob::after {
+      bottom: -100vw;
+      right: -50vw;
+      animation-direction: reverse;
+    }
+
+    @keyframes rotateBlob {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes driftRight {
+      0% { transform: translateX(-300px); }
+      100% { transform: translateX(calc(100vw + 300px)); }
+    }
+    .animate-drift {
+      animation: driftRight linear infinite;
+    }
+
+    /* Breathe Animation for Titles */
+    .animate-breathe {
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        transform: scale(1) translateY(0);
+      }
+
+      50% {
+        transform: scale(1.05) translateY(-5px);
+      }
+    }
+
+    /* Floating Decor Animation */
+    .float-decor {
+      position: absolute;
+      animation: floatItem 6s ease-in-out infinite;
+      color: rgba(252, 211, 77, 0.6);
+      /* Yellow with opacity */
+      z-index: 0;
+    }
+
+    @keyframes floatItem {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-5deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+    }
+
+    /* Text Outline (Stroke) Hack */
+    .text-stroke-thick {
+      -webkit-text-stroke: 8px var(--clr-ww-darkblue);
+      paint-order: stroke fill;
+      filter: drop-shadow(0px 8px 0px rgba(0, 0, 0, 0.3));
+    }
+
+    /* Fallback for browsers that don't support paint-order well */
+    .text-shadow-thick {
+      text-shadow:
+        -4px -4px 0 var(--clr-ww-darkblue),
+        0 -4px 0 var(--clr-ww-darkblue),
+        4px -4px 0 var(--clr-ww-darkblue),
+        4px 0 0 var(--clr-ww-darkblue),
+        4px 4px 0 var(--clr-ww-darkblue),
+        0 4px 0 var(--clr-ww-darkblue),
+        -4px 4px 0 var(--clr-ww-darkblue),
+        -4px 0 0 var(--clr-ww-darkblue),
+        0 8px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    /* Wordwall Card Container */
+    .card-ww {
+      background: var(--clr-ww-blue);
+      border: 6px solid var(--clr-ww-white);
+      border-radius: 30px;
+      box-shadow: 0 0 0 6px var(--clr-ww-darkblue), 0 15px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 10;
+      /* Inner blob pattern for cards */
+      background-image: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+    }
+
+    /* Pill Buttons */
+    .btn-ww {
+      background: var(--clr-ww-blue);
+      color: var(--clr-ww-white);
+      border: 4px solid var(--clr-ww-white);
+      border-radius: 9999px;
+      box-shadow: 0 0 0 4px var(--clr-ww-darkblue), 0 8px 0 4px var(--clr-ww-darkblue);
+      font-family: 'Titan One', cursive;
+      text-transform: uppercase;
+      transition: all 0.1s ease;
+      position: relative;
+      letter-spacing: 1px;
+    }
+
+    .btn-ww:active:not(:disabled) {
+      transform: translateY(6px);
+      box-shadow: 0 0 0 4px var(--clr-ww-darkblue), 0 2px 0 4px var(--clr-ww-darkblue);
+    }
+
+    .btn-ww.red {
+      background: var(--clr-ww-red);
+    }
+
+    /* Next/Right Nav Button */
+    .btn-nav-round {
+      background: var(--clr-ww-blue);
+      color: var(--clr-ww-white);
+      border: 4px solid var(--clr-ww-white);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px var(--clr-ww-darkblue), 0 6px 0 4px var(--clr-ww-darkblue);
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      transition: all 0.1s ease;
+      cursor: pointer;
+    }
+
+    .btn-nav-round:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 4px var(--clr-ww-darkblue), 0 2px 0 4px var(--clr-ww-darkblue);
+    }
+
+    .btn-nav-corner {
+      bottom: -10px;
+      right: -10px;
+    }
+
+    /* Inner text boxes (like instructions/profile) */
+    .inner-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      color: white;
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 4px;
+    }
+
+    /* Hide scrollbar for custom elements */
+    .custom-scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Screen Transitions */
+    .slide-up-fade {
+      animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpFade {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            wwBlue: '#3b82f6',
+            wwDarkBlue: '#1e3a8a',
+            wwYellow: '#fcd34d',
+            wwRed: '#ef4444',
+            wwWhite: '#ffffff',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- Global Audio Elements -->
+  <audio id="bgm" src="assets/music/game_background 1.mp3" loop></audio>
+  <audio id="bgm-2" src="assets/music/game_background 2.mp3" loop></audio>
+  <audio id="sfx-click" src="assets/music/click 1.mp3"></audio>
+  <audio id="sfx-timer" src="assets/music/timer.mp3"></audio>
+  <audio id="sfx-correct" src="assets/music/correct answer.mp3"></audio>
+  <audio id="sfx-wrong" src="assets/music/wrong answer.mp3"></audio>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Audio Helpers
+    const playClick = () => {
+      const sfx = document.getElementById('sfx-click');
+      if (sfx) {
+        sfx.currentTime = 0;
+        sfx.play().catch(e => console.log('Audio play blocked:', e));
+      }
+    };
+
+    const playTimerTick = () => {
+      const sfx = document.getElementById('sfx-timer');
+      if (sfx) { sfx.volume = 0.3; sfx.play().catch(e => e); }
+    };
+
+    const playCorrect = () => {
+      const sfx = document.getElementById('sfx-correct');
+      if (sfx) { sfx.currentTime = 0; sfx.volume = 0.4; sfx.play().catch(e => e); }
+    };
+
+    const playWrong = () => {
+      const sfx = document.getElementById('sfx-wrong');
+      if (sfx) { sfx.currentTime = 0; sfx.volume = 0.4; sfx.play().catch(e => e); }
+    };
+
+    const startBGM = (mode = 'menu') => {
+      const bgm1 = document.getElementById('bgm');
+      const bgm2 = document.getElementById('bgm-2');
+
+      if (mode === 'game') {
+        if (bgm1) bgm1.pause();
+        if (bgm2) {
+          bgm2.volume = 0.15;
+          bgm2.play().catch(e => console.log('BGM2 blocked:', e));
+        }
+      } else {
+        if (bgm2) bgm2.pause();
+        if (bgm1) {
+          bgm1.volume = 0.15;
+          bgm1.play().catch(e => console.log('BGM1 blocked:', e));
+        }
+      }
+    };
+
+    // --- Web Speech API TTS Hook ---
+    function useGermanVoice() {
+      const [isSpeaking, setIsSpeaking] = useState(false);
+
+      const speak = (text) => {
+        if (!('speechSynthesis' in window)) return;
+        
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'de-DE';
+        utterance.rate = 0.85;
+        utterance.pitch = 1.1;
+        
+        const voices = window.speechSynthesis.getVoices();
+        const preferredNames = ['Google Deutsch', 'Microsoft Katja', 'Marlene', 'Anna'];
+        
+        let selectedVoice = null;
+        for (const name of preferredNames) {
+          selectedVoice = voices.find(v => v.name.includes(name) && v.lang.startsWith('de'));
+          if (selectedVoice) break;
+        }
+        
+        if (!selectedVoice) {
+          selectedVoice = voices.find(v => v.lang.startsWith('de'));
+        }
+        
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+        
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+        
+        window.speechSynthesis.speak(utterance);
+      };
+
+      return { speak, isSpeaking };
+    }
+
+    // --- REUSABLE COMPONENTS ---
+
+    // Icon Component using Lucide (Safe for React)
+    function Icon({ name, size = 24, className = "" }) {
+      const spanRef = useRef(null);
+
+      useEffect(() => {
+        if (window.lucide && spanRef.current) {
+          spanRef.current.innerHTML = `<i data-lucide="${name}"></i>`;
+          window.lucide.createIcons({
+            attrs: { class: className, width: size, height: size },
+            nameAttr: 'data-lucide',
+            root: spanRef.current
+          });
+        }
+      }, [name, className, size]);
+
+      return <span ref={spanRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} dangerouslySetInnerHTML={{ __html: `<i data-lucide="${name}"></i>` }} />;
+    }
+
+    // Wordwall Title Component
+    function TitleText({ text1, text2, className = "" }) {
+      return (
+        <div className={`font-title text-center ${className}`}>
+          {text1 && <h1 className="text-4xl sm:text-6xl text-white text-shadow-thick mb-2">{text1}</h1>}
+          {text2 && <h1 className="text-5xl sm:text-7xl text-wwYellow text-shadow-thick">{text2}</h1>}
+        </div>
+      );
+    }
+
+    // Floating Background Decor
+    function BackgroundDecor() {
+      // Theme: Family / Home. Increased sizes.
+      const items = [
+        { icon: 'home', top: '5%', left: '8%', delay: '0s', size: 90 },
+        { icon: 'armchair', top: '15%', right: '10%', delay: '1s', size: 80 },
+        { icon: 'heart', top: '55%', left: '15%', delay: '2s', size: 70 },
+        { icon: 'camera', bottom: '15%', right: '20%', delay: '0.5s', size: 85 },
+        { icon: 'coffee', top: '65%', right: '8%', delay: '3s', size: 75 },
+        { icon: 'utensils', bottom: '10%', left: '10%', delay: '1.5s', size: 90 },
+      ];
+
+      return (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          {items.map((item, i) => (
+            <div
+              key={i}
+              className="float-decor drop-shadow-md"
+              style={{ top: item.top, bottom: item.bottom, left: item.left, right: item.right, animationDelay: item.delay }}
+            >
+              <Icon name={item.icon} size={item.size} />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+
+    // --- LERNEN MODULE ---
+    function LernenScreen({ onBack, onNavigate }) {
+      const [tab, setTab] = useState(1);
+
+      return (
+        <div className="flex flex-col items-center min-h-screen p-4 sm:p-6 slide-up-fade justify-center w-full relative">
+          <BackgroundDecor />
+          <div className="card-ww w-full max-w-4xl p-6 sm:p-8 mb-6 relative">
+            <button onClick={() => { playClick(); onBack(); }} className="absolute top-4 right-4 bg-wwRed text-white rounded-full p-2 border-2 border-white shadow-[0_0_0_2px_#1e3a8a] z-20 hover:scale-105 active:scale-95 transition-transform">
+              <Icon name="x" size={24} className="stroke-[3]" />
+            </button>
+
+            <div className="flex items-center justify-center mb-8">
+              <h2 className="text-3xl sm:text-4xl font-title text-white text-shadow-thick">LERNEN</h2>
+            </div>
+
+            <div className="flex gap-4 mb-8 overflow-x-auto pb-4 px-2 sm:justify-center w-full max-w-full custom-scrollbar-hide snap-x">
+              <button onClick={() => { playClick(); setTab(1); }} className={`flex-shrink-0 snap-center btn-ww px-6 py-3 text-sm sm:text-lg ${tab === 1 ? 'red' : ''}`}>
+                Stammbaum
+              </button>
+              <button onClick={() => { playClick(); setTab(2); }} className={`flex-shrink-0 snap-center btn-ww px-6 py-3 text-sm sm:text-lg ${tab === 2 ? 'red' : ''}`}>
+                Wortschatz
+              </button>
+              <button onClick={() => { playClick(); setTab(3); }} className={`flex-shrink-0 snap-center btn-ww px-6 py-3 text-sm sm:text-lg ${tab === 3 ? 'red' : ''}`}>
+                Mini-Übung
+              </button>
+              {/* Spacer for right padding on scroll */}
+              <div className="w-2 flex-shrink-0 sm:hidden"></div>
+            </div>
+
+            <div className="inner-box p-6 sm:p-8 min-h-[400px] pb-32 sm:pb-40 relative">
+              {tab === 1 && <Stammbaum />}
+              {tab === 2 && <Wortschatz />}
+              {tab === 3 && <MiniUbung onNavigate={onNavigate} />}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // [Lernen Components: Stammbaum, Wortschatz, MiniUbung] - adapted to Wordwall colors
+    function Stammbaum() {
+      const [selectedChar, setSelectedChar] = useState(null);
+      const [page, setPage] = useState(1);
+      const { speak, isSpeaking } = useGermanVoice();
+
+      const getRelationLabel = (char) => {
+        if (!char) return '';
+        if (char.id === 'ich') return 'ICH';
+        const isFeminine = ['oma', 'mutter', 'schwester', 'tante', 'cousine', 'enkelin', 'nachbarin'].includes(char.id);
+        const prefix = isFeminine ? 'MEINE ' : 'MEIN ';
+        let name = char.title;
+        if (char.id === 'opa') name = 'OPA';
+        if (char.id === 'oma') name = 'OMA';
+        return prefix + name.toUpperCase();
+      };
+
+      const getArticleNoun = (char) => {
+        if (!char) return '';
+        if (char.id === 'ich') return 'Das Kind';
+        const article = char.color === 'bg-wwDarkBlue' ? 'Der' : (char.color === 'bg-wwRed' ? 'Die' : 'Das');
+        const name = char.title.split(' / ')[0];
+        return `${article} ${name}`;
+      };
+
+      const handleCharClick = (member) => {
+        playClick();
+        setSelectedChar(member);
+        speak(getArticleNoun(member));
+      };
+
+      const coreFamily = [
+        { id: 'opa', title: 'Großvater / Opa', img: 'assets/images/grossvater_opa.png', fallback: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=150&h=150&fit=crop', text: 'Das ist mein Großvater oder Opa. Er ist der Vater von meinem Vater.', color: 'bg-wwDarkBlue' },
+        { id: 'oma', title: 'Großmutter / Oma', img: 'assets/images/grossmutter_oma.png', fallback: 'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=150&h=150&fit=crop', text: 'Das ist meine Großmutter oder Oma. Sie ist die Mutter von meinem Vater.', color: 'bg-wwRed' },
+        { id: 'vater', title: 'Vater', img: 'assets/images/vater.png', fallback: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop', text: 'Das ist mein Vater. Er ist der Mann von meiner Mutter.', color: 'bg-wwDarkBlue' },
+        { id: 'mutter', title: 'Mutter', img: 'assets/images/mutter.png', fallback: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop', text: 'Das ist meine Mutter. Sie ist die Frau von meinem Vater.', color: 'bg-wwRed' },
+        { id: 'bruder', title: 'Bruder', img: 'assets/images/bruder.png', fallback: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&h=150&fit=crop', text: 'Das ist mein Bruder. Er ist der Sohn von meinen Eltern.', color: 'bg-wwDarkBlue' },
+        { id: 'ich', title: 'Ich / Kind', img: 'assets/images/ich_kind.png', fallback: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop', text: 'Das bin ich! Ich bin das Kind von meinen Eltern.', color: 'bg-wwYellow' },
+        { id: 'schwester', title: 'Schwester', img: 'assets/images/schwester.png', fallback: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=150&h=150&fit=crop', text: 'Das ist meine Schwester. Sie ist die Tochter von meinen Eltern.', color: 'bg-wwRed' }
+      ];
+
+      const extendedFamily = [
+        { id: 'onkel', title: 'Onkel', img: 'assets/images/onkel.png', fallback: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop', text: 'Das ist mein Onkel. Er ist der Bruder von meinem Vater oder meiner Mutter.', color: 'bg-wwDarkBlue' },
+        { id: 'tante', title: 'Tante', img: 'assets/images/tante.png', fallback: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop', text: 'Das ist meine Tante. Sie ist die Schwester von meinem Vater oder meiner Mutter.', color: 'bg-wwRed' },
+        { id: 'cousin', title: 'Cousin', img: 'assets/images/cousin.png', fallback: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop', text: 'Das ist mein Cousin. Er ist der Sohn von meinem Onkel und meiner Tante.', color: 'bg-wwDarkBlue' },
+        { id: 'cousine', title: 'Cousine', img: 'assets/images/cousine.png', fallback: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop', text: 'Das ist meine Cousine. Sie ist die Tochter von meinem Onkel und meiner Tante.', color: 'bg-wwRed' },
+        { id: 'enkel', title: 'Enkel', img: 'assets/images/enkel.png', fallback: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?w=150&h=150&fit=crop', text: 'Das ist mein Enkel. Er ist der Sohn von meinem Kind.', color: 'bg-wwDarkBlue' },
+        { id: 'enkelin', title: 'Enkelin', img: 'assets/images/enkelin.png', fallback: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop', text: 'Das ist meine Enkelin. Sie ist die Tochter von meinem Kind.', color: 'bg-wwRed' },
+        { id: 'nachbar', title: 'Nachbar', img: 'assets/images/nachbar.png', fallback: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop', text: 'Das ist mein Nachbar. Er wohnt neben meinem Haus.', color: 'bg-wwDarkBlue' },
+        { id: 'nachbarin', title: 'Nachbarin', img: 'assets/images/nachbarin.png', fallback: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop', text: 'Das ist meine Nachbarin. Sie wohnt neben meinem Haus.', color: 'bg-wwRed' }
+      ];
+
+      return (
+        <div className="slide-up-fade text-white relative">
+          <div className="flex justify-center mb-4">
+            <h3 className="font-title text-xl sm:text-2xl text-wwYellow drop-shadow-md text-center">
+              {page === 1 ? 'KELUARGA INTI (Kernfamilie)' : 'KELUARGA BESAR & SOSIAL'}
+            </h3>
+          </div>
+
+          {page === 1 ? (
+            <div className="flex flex-col items-center gap-6 py-4 slide-up-fade">
+              <div className="flex gap-8 justify-center relative">
+                <div className="absolute top-1/2 left-[20%] right-[20%] h-1.5 bg-white/50 -z-10 rounded-full"></div>
+                {[coreFamily[0], coreFamily[1]].map(member => (
+                  <CharacterCard key={member.id} member={member} onClick={() => handleCharClick(member)} />
+                ))}
+              </div>
+              <div className="h-6 w-1.5 bg-white/50 -my-4 z-0 rounded-full"></div>
+              <div className="flex gap-8 justify-center relative">
+                <div className="absolute top-1/2 left-[20%] right-[20%] h-1.5 bg-white/50 -z-10 rounded-full"></div>
+                {[coreFamily[2], coreFamily[3]].map(member => (
+                  <CharacterCard key={member.id} member={member} onClick={() => handleCharClick(member)} />
+                ))}
+              </div>
+              <div className="h-6 w-1.5 bg-white/50 -my-4 z-0 rounded-full"></div>
+              <div className="flex gap-4 justify-center relative">
+                <div className="absolute top-1/2 left-[15%] right-[15%] h-1.5 bg-white/50 -z-10 rounded-full"></div>
+                {[coreFamily[4], coreFamily[5], coreFamily[6]].map(member => (
+                  <CharacterCard key={member.id} member={member} onClick={() => handleCharClick(member)} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 py-4 slide-up-fade">
+              {extendedFamily.map(member => (
+                <CharacterCard key={member.id} member={member} onClick={() => handleCharClick(member)} />
+              ))}
+            </div>
+          )}
+
+          {/* Pagination Navigation */}
+          <div className="flex justify-between mt-6 relative h-12">
+            {page === 2 && (
+              <button onClick={() => { playClick(); setPage(1); setSelectedChar(null); }} className="absolute left-0 flex items-center justify-center gap-2 bg-wwDarkBlue text-white font-bold py-2 px-4 sm:px-6 rounded-full border-2 border-white hover:bg-wwBlue transition-colors z-10 text-sm sm:text-base">
+                <Icon name="arrow-left" size={20} /> INTI
+              </button>
+            )}
+            {page === 1 && (
+              <button onClick={() => { playClick(); setPage(2); setSelectedChar(null); }} className="absolute right-0 flex items-center justify-center gap-2 bg-wwDarkBlue text-white font-bold py-2 px-4 sm:px-6 rounded-full border-2 border-white hover:bg-wwBlue transition-colors z-10 text-sm sm:text-base">
+                BESAR <Icon name="arrow-right" size={20} />
+              </button>
+            )}
+          </div>
+
+          {selectedChar && (
+            <div className="fixed bottom-0 left-0 w-full z-50 slide-up-fade pointer-events-none flex justify-center">
+              <div className="w-full pointer-events-auto relative mt-20 sm:mt-28">
+                <div className="bg-wwDarkBlue border-t-[4px] sm:border-t-[6px] border-white w-full shadow-[0_-15px_30px_rgba(0,0,0,0.6)] relative flex flex-row items-stretch min-h-[130px] sm:min-h-[160px] pb-2 sm:pb-4 pt-2">
+                  
+                  {/* Close Button Inside */}
+                  <button onClick={() => { playClick(); setSelectedChar(null); }} className="absolute top-3 right-3 sm:top-5 sm:right-6 bg-wwRed text-white rounded-full p-1.5 sm:p-2 border-[3px] border-white shadow-md z-30 hover:scale-110 active:scale-95 transition-transform flex items-center justify-center">
+                    <Icon name="x" size={20} className="stroke-[3]" />
+                  </button>
+
+                  {/* Speech Bubble - z-30 places it IN FRONT of the portrait */}
+                  <div className="absolute -top-7 sm:-top-9 left-[85px] sm:left-[180px] z-30 drop-shadow-md">
+                    <div className="relative bg-wwYellow text-wwDarkBlue font-title px-4 sm:px-6 py-1.5 sm:py-2 rounded-xl text-sm sm:text-xl border-[3px] sm:border-[4px] border-white z-20 whitespace-nowrap flex items-center gap-2">
+                      {getRelationLabel(selectedChar)}
+                      <button onClick={(e) => { e.stopPropagation(); speak(getArticleNoun(selectedChar)); }} className={`cursor-pointer hover:scale-110 transition-transform ${isSpeaking ? 'animate-pulse text-wwRed' : 'text-wwDarkBlue'}`}>
+                        <Icon name="volume-2" size={20} />
+                      </button>
+                    </div>
+                    {/* Tail Border (Behind) */}
+                    <div className="absolute -bottom-[5px] sm:-bottom-[7px] left-[12px] sm:left-[20px] w-4 h-4 sm:w-5 sm:h-5 bg-white rotate-45 z-10"></div>
+                    {/* Tail Fill (In front of border) */}
+                    <div className="absolute -bottom-[2px] sm:-bottom-[3px] left-[12px] sm:left-[20px] w-4 h-4 sm:w-5 sm:h-5 bg-wwYellow rotate-45 z-30"></div>
+                  </div>
+
+                  {/* Character Portrait. z-20 places it IN FRONT of the Name Badge */}
+                  <div className="w-[85px] sm:w-[170px] flex-shrink-0 relative z-20">
+                    <img src="assets/images/dialog_alanna.png" alt="Ich" className="absolute bottom-0 left-0 sm:left-2 w-[105px] sm:w-[210px] h-auto max-h-[190px] sm:max-h-[300px] object-contain object-bottom drop-shadow-[5px_5px_15px_rgba(0,0,0,0.5)] max-w-none" />
+                  </div>
+                  
+                  {/* Text Content. Increased pl to shift the circular photo right, avoiding overlap */}
+                  <div className="flex-1 py-4 sm:py-6 pr-14 sm:pr-24 pl-8 sm:pl-16 z-10 flex flex-col justify-center min-w-0">
+                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-6 mt-1">
+                      {/* Mobile View: Small photo and title */}
+                      <div className="flex items-center gap-3 sm:hidden mb-1 flex-shrink-0 min-w-0">
+                        <img src={selectedChar.img} onError={(e) => { e.target.src = selectedChar.fallback; }} className="w-10 h-10 rounded-full border-2 border-white shadow-md bg-white flex-shrink-0" alt={selectedChar.title} />
+                        <span className="font-title text-base text-wwYellow drop-shadow-sm truncate">{selectedChar.title}</span>
+                      </div>
+                      
+                      {/* Desktop View: Medium photo */}
+                      <img src={selectedChar.img} onError={(e) => { e.target.src = selectedChar.fallback; }} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-[3px] border-white shadow-md bg-white flex-shrink-0 hidden sm:block mt-1" alt={selectedChar.title} />
+                      
+                      <div className="min-w-0 flex-1">
+                        {/* Desktop View: Title */}
+                        <h4 className="font-title text-lg sm:text-xl text-wwYellow mb-1 hidden sm:block drop-shadow-sm truncate">{selectedChar.title}</h4>
+                        <p className="font-bold text-[0.95rem] sm:text-xl text-white leading-relaxed drop-shadow-md break-words">
+                          "{selectedChar.text}"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function CharacterCard({ member, onClick }) {
+      return (
+        <div className="flex flex-col items-center cursor-pointer group hover:-translate-y-1 transition-transform" onClick={onClick}>
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-4 border-white shadow-lg mb-2 bg-white">
+            <img src={member.img} onError={(e) => { e.target.src = member.fallback; }} alt={member.title} className="w-full h-full object-cover" />
+          </div>
+          <span className="font-title text-xs sm:text-sm bg-white text-wwDarkBlue px-3 py-1 rounded-full shadow-md text-center">
+            {member.title}
+          </span>
+        </div>
+      );
+    }
+
+    function Wortschatz() {
+      const words = [
+        // Maskulin
+        { article: 'der', noun: 'Vater', id: 'Ayah', group: 'maskulin' },
+        { article: 'der', noun: 'Großvater / Opa', id: 'Kakek', group: 'maskulin' },
+        { article: 'der', noun: 'Bruder', id: 'Saudara laki-laki', group: 'maskulin' },
+        { article: 'der', noun: 'Sohn', id: 'Anak laki-laki', group: 'maskulin' },
+        { article: 'der', noun: 'Onkel', id: 'Paman', group: 'maskulin' },
+        { article: 'der', noun: 'Cousin', id: 'Sepupu laki-laki', group: 'maskulin' },
+        { article: 'der', noun: 'Enkel', id: 'Cucu laki-laki', group: 'maskulin' },
+        { article: 'der', noun: 'Nachbar', id: 'Tetangga laki-laki', group: 'maskulin' },
+        // Feminin
+        { article: 'die', noun: 'Mutter', id: 'Ibu', group: 'feminin' },
+        { article: 'die', noun: 'Großmutter / Oma', id: 'Nenek', group: 'feminin' },
+        { article: 'die', noun: 'Schwester', id: 'Saudara perempuan', group: 'feminin' },
+        { article: 'die', noun: 'Tochter', id: 'Anak perempuan', group: 'feminin' },
+        { article: 'die', noun: 'Tante', id: 'Bibi / Tante', group: 'feminin' },
+        { article: 'die', noun: 'Cousine', id: 'Sepupu perempuan', group: 'feminin' },
+        { article: 'die', noun: 'Enkelin', id: 'Cucu perempuan', group: 'feminin' },
+        { article: 'die', noun: 'Nachbarin', id: 'Tetangga perempuan', group: 'feminin' },
+        // Netral
+        { article: 'das', noun: 'Kind', id: 'Anak', group: 'neutral' },
+        { article: 'das', noun: 'Baby', id: 'Bayi', group: 'neutral' },
+        // Plural
+        { article: 'die', noun: 'Eltern', id: 'Orang tua (Pl.)', group: 'plural' },
+        { article: 'die', noun: 'Großeltern', id: 'Kakek-nenek (Pl.)', group: 'plural' },
+        { article: 'die', noun: 'Geschwister', id: 'Saudara kandung (Pl.)', group: 'plural' }
+      ];
+      return (
+        <div className="slide-up-fade grid grid-cols-2 md:grid-cols-4 gap-4 perspective-1000 overflow-y-auto max-h-[50vh] p-2 custom-scrollbar">
+          {words.map((word, i) => (
+            <FlashCard key={i} word={word} />
+          ))}
+        </div>
+      );
+    }
+
+    function FlashCard({ word }) {
+      const [flipped, setFlipped] = useState(false);
+      const { speak, isSpeaking } = useGermanVoice();
+
+      const getGroupStyles = (group) => {
+        switch (group) {
+          case 'maskulin': return { border: 'border-wwBlue', text: 'text-wwBlue' };
+          case 'feminin': return { border: 'border-wwRed', text: 'text-wwRed' };
+          case 'neutral': return { border: 'border-wwYellow', text: 'text-wwYellow' };
+          case 'plural': return { border: 'border-green-500', text: 'text-green-500' };
+          default: return { border: 'border-gray-400', text: 'text-gray-400' };
+        }
+      };
+
+      const getExplanation = (group) => {
+        switch (group) {
+          case 'maskulin': return 'Maskulin (der) ➔ mein';
+          case 'feminin': return 'Feminin (die) ➔ meine';
+          case 'neutral': return 'Netral (das) ➔ mein';
+          case 'plural': return 'Jamak (die) ➔ meine';
+          default: return '';
+        }
+      };
+
+      const styles = getGroupStyles(word.group);
+
+      const handleFlip = () => {
+        playClick();
+        setFlipped(!flipped);
+        speak(`${word.article} ${word.noun.split(' / ')[0]}`);
+      };
+
+      return (
+        <div className={`relative h-28 sm:h-32 cursor-pointer transition-all duration-300 transform-style-3d active:scale-[1.15] active:rotate-[20deg] ${flipped ? 'rotate-y-180' : ''}`} onClick={handleFlip}>
+          {/* Front */}
+          <div className={`absolute inset-0 backface-hidden bg-white border-4 ${styles.border} rounded-2xl flex items-center justify-center p-2 shadow-lg ${flipped ? 'hidden' : ''}`}>
+            <div className={`absolute top-2 right-2 transition-opacity ${isSpeaking ? 'animate-pulse text-wwRed opacity-100' : 'text-gray-400 opacity-50'}`}>
+              <Icon name="volume-2" size={16} />
+            </div>
+            <span className="font-title text-[clamp(0.85rem,3.5vw,1.25rem)] sm:text-[clamp(1rem,2vw,1.5rem)] text-center leading-tight break-words">
+              <span className={styles.text}>{word.article}</span> <br className="sm:hidden" /> <span className="text-wwDarkBlue">{word.noun}</span>
+            </span>
+          </div>
+          {/* Back */}
+          <div className={`absolute inset-0 backface-hidden bg-white border-4 ${styles.border} rounded-2xl flex flex-col items-center justify-center p-2 shadow-lg rotate-y-180 ${!flipped ? 'hidden' : ''}`}>
+            <span className="font-title text-[clamp(0.85rem,4vw,1.25rem)] sm:text-[clamp(1rem,2vw,1.5rem)] text-wwDarkBlue text-center leading-tight break-words px-1">{word.id}</span>
+            <span className="text-[9px] sm:text-[11px] font-bold text-wwDarkBlue text-center mt-1 px-1 sm:px-2 py-1 bg-gray-100 border border-gray-200 rounded-lg max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{getExplanation(word.group)}</span>
+          </div>
+        </div>
+      );
+    }
+
+    function MiniUbung({ onNavigate }) {
+      const questions = [
+        { text: "Das ist", blank: "Vater.", answer: "der", options: ["der", "die", "das"] },
+        { text: "Das ist", blank: "Mutter.", answer: "die", options: ["der", "die", "das"] },
+        { text: "Das ist", blank: "Kind.", answer: "das", options: ["der", "die", "das"] },
+      ];
+      const [answers, setAnswers] = useState({});
+
+      const isAllCorrect = questions.every((q, i) => answers[i] === q.answer);
+
+      return (
+        <div className="slide-up-fade space-y-4 max-w-lg mx-auto pb-6">
+          {questions.map((q, i) => {
+            const isCorrect = answers[i] === q.answer;
+            return (
+              <div key={i} className="bg-white/10 p-4 rounded-xl border-2 border-white/30">
+                <div className="text-xl font-bold text-center text-white mb-4">
+                  {q.text} <span className="text-wwYellow underline px-2">{answers[i] || '___'}</span> {q.blank}
+                </div>
+                <div className="flex justify-center gap-4">
+                  {q.options.map(opt => (
+                    <button key={opt} onClick={() => { playClick(); setAnswers({ ...answers, [i]: opt }); }} className={`btn-ww px-6 py-2 text-sm ${answers[i] === opt ? 'red' : ''}`}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                {answers[i] && (
+                  <div className={`text-center mt-3 font-bold ${isCorrect ? 'text-green-400' : 'text-wwRed'}`}>
+                    {isCorrect ? 'Benar!' : 'Salah!'}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {isAllCorrect && (
+            <div className="flex justify-center mt-8 slide-up-fade">
+              <button onClick={() => { playClick(); onNavigate('login'); }} className="btn-ww red px-8 py-4 text-xl flex items-center gap-3">
+                <Icon name="gamepad-2" size={24} /> BERMAIN WORTSALAT
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+
+    // --- WORTSALAT GAME MODULE ---
+    const wordBank = [
+      { noun: "VATER", article: "DER", id: "Ayah", img: "assets/images/vater.png", fallback: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop", clue: "Der Mann von meiner Mutter ist mein..." },
+      { noun: "MUTTER", article: "DIE", id: "Ibu", img: "assets/images/mutter.png", fallback: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop", clue: "Die Frau von meinem Vater ist meine..." },
+      { noun: "ELTERN", article: "DIE", id: "Orang Tua", img: "assets/images/eltern.png", fallback: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&h=200&fit=crop", clue: "Mein Vater und meine Mutter sind meine..." },
+      { noun: "KIND", article: "DAS", id: "Anak", img: "assets/images/ich_kind.png", fallback: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop", clue: "Der Sohn oder die Tochter von den Eltern ist das..." },
+      { noun: "SOHN", article: "DER", id: "Anak Lk", img: "assets/images/sohn.png", fallback: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=200&h=200&fit=crop", clue: "Das männliche Kind von den Eltern ist der..." },
+      { noun: "TOCHTER", article: "DIE", id: "Anak Pr", img: "assets/images/tochter.png", fallback: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop", clue: "Das weibliche Kind von den Eltern ist die..." },
+      { noun: "BRUDER", article: "DER", id: "Saudara Lk", img: "assets/images/bruder.png", fallback: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&h=200&fit=crop", clue: "Der andere Sohn von meinen Eltern ist mein..." },
+      { noun: "SCHWESTER", article: "DIE", id: "Saudara Pr", img: "assets/images/schwester.png", fallback: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop", clue: "Die andere Tochter von meinen Eltern ist meine..." },
+      { noun: "GESCHWISTER", article: "DIE", id: "Saudara (Jamak)", img: "assets/images/geschwister.png", fallback: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&h=200&fit=crop", clue: "Mein Bruder und meine Schwester zusammen sind meine..." },
+      { noun: "OPA", article: "DER", id: "Kakek", img: "assets/images/grossvater_opa.png", fallback: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=200&h=200&fit=crop", clue: "Der Vater von meinem Vater ist mein..." },
+      { noun: "OMA", article: "DIE", id: "Nenek", img: "assets/images/grossmutter_oma.png", fallback: "https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=200&h=200&fit=crop", clue: "Die Mutter von meinem Vater ist meine..." },
+      { noun: "GROSSELTERN", article: "DIE", id: "Kakek-Nenek", img: "assets/images/grosseltern.png", fallback: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=200&h=200&fit=crop", clue: "Opa und Oma zusammen sind die..." },
+      { noun: "ONKEL", article: "DER", id: "Paman", img: "assets/images/onkel.png", fallback: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop", clue: "Der Bruder von meinem Vater ist mein..." },
+      { noun: "TANTE", article: "DIE", id: "Bibi", img: "assets/images/tante.png", fallback: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop", clue: "Die Schwester von meiner Mutter ist meine..." },
+      { noun: "COUSIN", article: "DER", id: "Sepupu Lk", img: "assets/images/cousin.png", fallback: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop", clue: "Der Sohn von meinem Onkel ist mein..." },
+      { noun: "COUSINE", article: "DIE", id: "Sepupu Pr", img: "assets/images/cousine.png", fallback: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop", clue: "Die Tochter von meiner Tante ist meine..." },
+      { noun: "ENKEL", article: "DER", id: "Cucu Lk", img: "assets/images/enkel.png", fallback: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=200&h=200&fit=crop", clue: "Der Sohn von meinem Sohn ist mein..." },
+      { noun: "ENKELIN", article: "DIE", id: "Cucu Pr", img: "assets/images/enkelin.png", fallback: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop", clue: "Die Tochter von meinem Sohn ist meine..." },
+      { noun: "NACHBAR", article: "DER", id: "Tetangga Lk", img: "assets/images/nachbar.png", fallback: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop", clue: "Der Mann, der neben meinem Haus wohnt, ist der..." },
+      { noun: "NACHBARIN", article: "DIE", id: "Tetangga Pr", img: "assets/images/nachbarin.png", fallback: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop", clue: "Die Frau, die neben meinem Haus wohnt, ist die..." }
+    ];
+
+    function LevelSelectScreen({ unlockedLevel, onSelectLevel, onBack }) {
+      const [showResetModal, setShowResetModal] = useState(false);
+
+      const handleReset = () => {
+        playClick();
+        localStorage.removeItem('namaPemain');
+        localStorage.removeItem('sandiPemain');
+        window.location.reload();
+      };
+
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-blob relative p-4 slide-up-fade">
+          <BackgroundDecor />
+          <div className="card-ww max-w-lg w-full p-8 relative z-10">
+            <button onClick={() => { playClick(); onBack(); }} className="absolute top-4 right-4 bg-wwRed text-white rounded-full p-2 border-2 border-white shadow-[0_0_0_2px_#1e3a8a] z-20 hover:scale-105 active:scale-95 transition-transform">
+              <Icon name="x" size={24} />
+            </button>
+            <h2 className="font-title text-3xl sm:text-4xl text-center text-white text-shadow-thick mb-8">PILIH TAHAP</h2>
+
+            <div className="space-y-4">
+              <button onClick={() => { playClick(); onSelectLevel(1); }} className="w-full btn-ww px-6 py-4 text-xl flex justify-between items-center bg-green-500 hover:bg-green-600">
+                <span>TAHAP 1: MUDAH</span>
+                <Icon name="image" size={28} />
+              </button>
+
+              <button disabled={unlockedLevel < 2} onClick={() => { playClick(); onSelectLevel(2); }} className={`w-full btn-ww px-6 py-4 text-xl flex justify-between items-center ${unlockedLevel >= 2 ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-400 opacity-70 cursor-not-allowed'}`}>
+                <span>TAHAP 2: SEDANG</span>
+                {unlockedLevel >= 2 ? <Icon name="type" size={28} /> : <Icon name="lock" size={28} />}
+              </button>
+
+              <button disabled={unlockedLevel < 3} onClick={() => { playClick(); onSelectLevel(3); }} className={`w-full btn-ww px-6 py-4 text-xl flex justify-between items-center ${unlockedLevel >= 3 ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400 opacity-70 cursor-not-allowed'}`}>
+                <span>TAHAP 3: SULIT</span>
+                {unlockedLevel >= 3 ? <Icon name="book-open" size={28} /> : <Icon name="lock" size={28} />}
+              </button>
+            </div>
+            <div className="mt-6 text-center text-white font-bold bg-black/20 p-4 rounded-xl border-2 border-white/40">
+              Jawab minimal 50% soal dengan benar untuk membuka tahap berikutnya!
+            </div>
+            
+            <div className="mt-6 flex justify-center">
+              <button onClick={() => { playClick(); setShowResetModal(true); }} className="bg-wwRed text-white font-bold py-3 px-6 rounded-full border-2 border-white shadow-md hover:bg-red-600 hover:scale-105 active:scale-95 transition-transform flex items-center gap-2">
+                <Icon name="rotate-ccw" size={20} /> Memulai Ulang Permainan
+              </button>
+            </div>
+          </div>
+
+          {showResetModal && (
+            <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 slide-up-fade">
+              <div className="bg-wwBlue border-4 border-white p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+                <div className="bg-white text-wwRed w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-wwRed shadow-md">
+                  <Icon name="alert-triangle" size={32} />
+                </div>
+                <h3 className="font-title text-2xl text-white mb-2 text-shadow-thick">PERHATIAN</h3>
+                <p className="font-bold text-white mb-8">Yakin ingin mengulang? Nilai Anda akan direset ulang.</p>
+                <div className="flex gap-4">
+                  <button onClick={() => { playClick(); setShowResetModal(false); }} className="flex-1 bg-white text-wwDarkBlue font-bold py-3 rounded-xl border-4 border-wwDarkBlue hover:bg-gray-100 transition-colors">
+                    TIDAK
+                  </button>
+                  <button onClick={handleReset} className="flex-1 bg-wwRed text-white font-bold py-3 rounded-xl border-4 border-white shadow-[0_4px_0_0_#991b1b] hover:bg-red-600 active:translate-y-1 active:shadow-none transition-all">
+                    YAKIN
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function WortsalatScreen({ level, onFinish, onBack }) {
+      const [questions, setQuestions] = useState([]);
+      const [currentQIndex, setCurrentQIndex] = useState(0);
+      const [score, setScore] = useState(0); // number of correct answers
+      const [shuffledLetters, setShuffledLetters] = useState([]);
+      const [placedLetters, setPlacedLetters] = useState([]);
+      const [timeLeft, setTimeLeft] = useState(45);
+      const [mistakes, setMistakes] = useState(0);
+      const [feedback, setFeedback] = useState(null);
+      const [timerActive, setTimerActive] = useState(false);
+      const { speak } = useGermanVoice();
+
+      useEffect(() => {
+        let qList = [...wordBank].sort(() => 0.5 - Math.random());
+        const prepared = qList.map(w => {
+          let target = ""; let clue = ""; let clueType = "";
+          if (level === 1) {
+            target = w.noun; clue = w.img; clueType = "image";
+          } else if (level === 2) {
+            target = w.noun; clue = w.clue; clueType = "text";
+          } else if (level === 3) {
+            target = w.article + " " + w.noun;
+            clue = Math.random() > 0.5 ? w.img : w.clue;
+            clueType = clue === w.img ? "image" : "text";
+          }
+          return { ...w, target, clue, clueType };
+        });
+        setQuestions(prepared);
+      }, [level]);
+
+      useEffect(() => {
+        if (questions.length > 0 && currentQIndex < questions.length) {
+          const q = questions[currentQIndex];
+          const targetStr = q.target.replace(/ /g, '');
+          const shuffled = targetStr.split('').sort(() => 0.5 - Math.random()).map((char, i) => ({ id: `char_${currentQIndex}_${i}`, char }));
+          setShuffledLetters(shuffled);
+          setPlacedLetters(Array(q.target.length).fill(null));
+          setTimeLeft(45);
+          setMistakes(0);
+          setFeedback(null);
+          setTimerActive(true);
+        } else if (questions.length > 0 && currentQIndex >= questions.length) {
+          onFinish(score, questions.length);
+        }
+      }, [currentQIndex, questions]);
+
+      useEffect(() => {
+        if (!timerActive) return;
+        if (timeLeft <= 0) {
+          setTimerActive(false);
+          playWrong();
+          setFeedback({ text: "Waktu Habis!", type: 'error' });
+          setTimeout(() => setCurrentQIndex(i => i + 1), 1500);
+          return;
+        }
+        if (timeLeft === 10) {
+          playTimerTick();
+        }
+        const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
+        return () => clearInterval(timer);
+      }, [timeLeft, timerActive]);
+
+      const handleHint = () => {
+        playClick();
+        const q = questions[currentQIndex];
+        const emptyIdx = placedLetters.findIndex((pl, i) => pl === null && q.target[i] !== ' ');
+        if (emptyIdx !== -1) {
+          const correctChar = q.target[emptyIdx];
+          const letterInShuffleIndex = shuffledLetters.findIndex(l => l.char === correctChar);
+          if (letterInShuffleIndex !== -1) {
+            const letterObj = shuffledLetters[letterInShuffleIndex];
+            handleLetterClick(letterObj, true);
+          }
+        }
+      };
+
+      const handleLetterClick = (letterObj, isHint = false) => {
+        if (!timerActive) return;
+        if (!isHint) playClick();
+
+        const q = questions[currentQIndex];
+        const emptyIdx = placedLetters.findIndex((pl, i) => pl === null && q.target[i] !== ' ');
+
+        if (emptyIdx !== -1) {
+          const expectedChar = q.target[emptyIdx];
+
+          if (letterObj.char === expectedChar) {
+            const newPlaced = [...placedLetters];
+            newPlaced[emptyIdx] = { ...letterObj, status: 'correct' };
+            setPlacedLetters(newPlaced);
+            setShuffledLetters(s => s.filter(sl => sl.id !== letterObj.id));
+
+            const totalChars = q.target.replace(/ /g, '').length;
+            if (newPlaced.filter(p => p !== null).length === totalChars) {
+              setTimerActive(false);
+              setScore(s => s + 1);
+              playCorrect();
+              setFeedback({ text: ["Prima!", "Richtig!", "Gut gemacht!"][Math.floor(Math.random() * 3)], type: 'success' });
+              setTimeout(() => speak(`${q.article} ${q.noun.split(' / ')[0]}`), 300);
+              setTimeout(() => setCurrentQIndex(i => i + 1), 2000);
+            }
+          } else {
+            setMistakes(m => m + 1);
+            playWrong();
+            setFeedback({ text: "Ups, versuch es nochmal!", type: 'error' });
+
+            const newPlaced = [...placedLetters];
+            newPlaced[emptyIdx] = { ...letterObj, status: 'wrong' };
+            setPlacedLetters(newPlaced);
+            setShuffledLetters(s => s.filter(sl => sl.id !== letterObj.id));
+
+            setTimeout(() => {
+              if (timerActive) {
+                const revertedPlaced = [...newPlaced];
+                revertedPlaced[emptyIdx] = null;
+                setPlacedLetters(revertedPlaced);
+                setShuffledLetters(s => [...s, letterObj]);
+                setFeedback(null);
+              }
+            }, 500);
+          }
+        }
+      };
+
+      if (questions.length === 0 || currentQIndex >= questions.length) return null;
+      const q = questions[currentQIndex];
+
+      return (
+        <div className="flex flex-col items-center min-h-screen p-4 justify-center w-full relative">
+          <BackgroundDecor />
+          <div className="card-ww w-full max-w-2xl p-6 sm:p-10 relative z-10">
+            <button onClick={() => { playClick(); onBack(); }} className="absolute top-4 right-4 bg-wwRed text-white rounded-full p-2 border-2 border-white shadow-[0_0_0_2px_#1e3a8a] z-20 hover:scale-105 active:scale-95 transition-transform">
+              <Icon name="x" size={24} />
+            </button>
+
+            <TitleText text1="WORTSALAT" className="mb-2 scale-75 sm:scale-100" />
+            <div className="text-center font-title text-white mb-6 bg-black/20 rounded-full px-4 py-1 mx-auto w-max border-2 border-white/40">
+              Tahap {level} • Soal {currentQIndex + 1}/20
+            </div>
+
+            <div className="flex justify-between text-white font-title text-lg sm:text-xl mb-6 bg-wwDarkBlue px-6 py-2 rounded-full border-2 border-white">
+              <span className={timeLeft <= 10 ? "text-wwRed animate-pulse" : ""}>Time: {timeLeft}s</span>
+              <span className="text-wwYellow">Score: {score}</span>
+            </div>
+
+            <div className="inner-box p-6 flex flex-col items-center mb-6 min-h-[250px] justify-center relative">
+              {/* Feedback Overlay */}
+              {feedback && (
+                <div className={`absolute top-2 left-1/2 -translate-x-1/2 z-30 font-title text-xl sm:text-2xl px-6 py-2 rounded-full border-4 border-white shadow-xl animate-breathe ${feedback.type === 'success' ? 'bg-green-500 text-white' : 'bg-wwRed text-white'}`}>
+                  {feedback.text}
+                </div>
+              )}
+
+              {/* Clue */}
+              {q.clueType === 'image' ? (
+                <img src={q.clue} onError={(e) => { e.target.src = q.fallback; }} className="w-32 h-32 rounded-2xl border-4 border-white mb-6 object-cover shadow-lg" />
+              ) : (
+                <p className="font-bold text-xl sm:text-2xl text-wwYellow mb-6 text-center leading-relaxed">"{q.clue}"</p>
+              )}
+
+              {/* Slots */}
+              <div className="flex gap-1 sm:gap-2 mb-6 flex-wrap justify-center">
+                {q.target.split('').map((char, i) => {
+                  if (char === ' ') return <div key={i} className="w-4 sm:w-6"></div>;
+                  const pl = placedLetters[i];
+                  let slotColor = "bg-white/20";
+                  let animation = "";
+                  if (pl) {
+                    if (pl.status === 'correct') slotColor = "bg-green-500";
+                    if (pl.status === 'wrong') { slotColor = "bg-wwRed"; animation = "animate-pulse translate-y-1"; }
+                  }
+
+                  return (
+                    <div key={i} className={`w-10 h-10 sm:w-12 sm:h-12 border-4 border-white rounded-xl flex items-center justify-center font-title text-xl sm:text-2xl text-white shadow-inner transition-all ${slotColor} ${animation}`}>
+                      {pl ? pl.char : ''}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Letters Pool */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {shuffledLetters.map((l) => (
+                  <button key={l.id} disabled={!timerActive} onClick={() => handleLetterClick(l)} className="w-12 h-12 sm:w-14 sm:h-14 bg-wwDarkBlue border-4 border-white text-white rounded-xl font-title text-2xl shadow-[0_4px_0_0_#1e3a8a] hover:bg-wwBlue hover:-translate-y-1 active:translate-y-1 active:shadow-none transition-all disabled:opacity-50">
+                    {l.char}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Hint System */}
+            <div className="flex justify-center h-12">
+              {mistakes >= 3 && shuffledLetters.length > 0 && timerActive && (
+                <button onClick={handleHint} className="btn-ww px-6 py-2 flex items-center gap-2 bg-wwYellow text-wwDarkBlue hover:bg-yellow-400">
+                  <Icon name="lightbulb" size={20} /> Bantuan
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function LevelResultScreen({ score, total, onRetry, onNextLevel, onMenu }) {
+      const percentage = (score / total) * 100;
+      const passed = percentage >= 50;
+
+      let stars = 0;
+      if (percentage >= 90) stars = 3;
+      else if (percentage >= 70) stars = 2;
+      else if (percentage >= 50) stars = 1;
+
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-blob relative p-4 slide-up-fade">
+          <BackgroundDecor />
+          <div className="card-ww max-w-md w-full p-8 relative text-center z-10">
+            <h2 className="font-title text-4xl text-white text-shadow-thick mb-6">
+              {passed ? "GESCHAFFT!" : "SCHADE!"}
+            </h2>
+
+            <div className="flex justify-center gap-2 mb-6">
+              {[1, 2, 3].map(s => (
+                <Icon key={s} name="star" size={60} className={s <= stars ? "text-wwYellow fill-wwYellow drop-shadow-lg" : "text-gray-400 fill-gray-400"} />
+              ))}
+            </div>
+
+            <div className="inner-box p-6 mb-8 text-center">
+              <p className="font-bold text-xl text-white mb-2">Skor Kamu</p>
+              <h3 className="text-6xl font-title text-wwYellow drop-shadow-md mb-2">{score}/{total}</h3>
+              <p className="font-bold text-white">
+                {passed ? "Bagus! Kamu bisa lanjut ke tahap berikutnya." : "Versuch es noch einmal! (Coba lagi!)"}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {passed ? (
+                <button onClick={() => { playClick(); onNextLevel(); }} className="btn-ww red w-full py-4 text-xl">
+                  TAHAP BERIKUTNYA
+                </button>
+              ) : (
+                <button onClick={() => { playClick(); onRetry(); }} className="btn-ww red w-full py-4 text-xl">
+                  ULANGI TAHAP INI
+                </button>
+              )}
+              <button onClick={() => { playClick(); onMenu(); }} className="w-full bg-wwDarkBlue text-white font-bold py-3 rounded-full border-2 border-white hover:bg-wwBlue">
+                KEMBALI KE MENU
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- SCREENS ---
+    function AnimatedClouds() {
+      return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          {/* Giant Background Cloud 1 */}
+          <div className="absolute top-[10%] animate-drift" style={{ animationDuration: '120s', animationDelay: '-30s' }}>
+            <div className="w-[500px] h-[120px] bg-white/20 rounded-full relative blur-[6px]">
+              <div className="absolute top-[-60px] left-[60px] w-[200px] h-[200px] bg-white/20 rounded-full"></div>
+              <div className="absolute top-[-90px] left-[200px] w-[250px] h-[250px] bg-white/20 rounded-full"></div>
+              <div className="absolute top-[-50px] right-[60px] w-[180px] h-[180px] bg-white/20 rounded-full"></div>
+            </div>
+          </div>
+          
+          {/* Giant Background Cloud 2 */}
+          <div className="absolute top-[40%] animate-drift" style={{ animationDuration: '150s', animationDelay: '-80s' }}>
+            <div className="w-[600px] h-[150px] bg-white/10 rounded-full relative blur-[8px]">
+              <div className="absolute top-[-80px] left-[80px] w-[250px] h-[250px] bg-white/10 rounded-full"></div>
+              <div className="absolute top-[-100px] left-[250px] w-[300px] h-[300px] bg-white/10 rounded-full"></div>
+              <div className="absolute top-[-60px] right-[80px] w-[220px] h-[220px] bg-white/10 rounded-full"></div>
+            </div>
+          </div>
+
+          {/* Medium Foreground Cloud 1 */}
+          <div className="absolute top-[20%] animate-drift" style={{ animationDuration: '80s', animationDelay: '-15s' }}>
+            <div className="w-[350px] h-[90px] bg-white/30 rounded-full relative blur-[4px]">
+              <div className="absolute top-[-40px] left-[40px] w-[140px] h-[140px] bg-white/30 rounded-full"></div>
+              <div className="absolute top-[-70px] left-[130px] w-[180px] h-[180px] bg-white/30 rounded-full"></div>
+              <div className="absolute top-[-30px] right-[40px] w-[120px] h-[120px] bg-white/30 rounded-full"></div>
+            </div>
+          </div>
+
+          {/* Medium Foreground Cloud 2 */}
+          <div className="absolute top-[60%] animate-drift" style={{ animationDuration: '95s', animationDelay: '-60s' }}>
+            <div className="w-[400px] h-[100px] bg-white/25 rounded-full relative blur-[5px]">
+              <div className="absolute top-[-50px] left-[50px] w-[160px] h-[160px] bg-white/25 rounded-full"></div>
+              <div className="absolute top-[-80px] left-[160px] w-[200px] h-[200px] bg-white/25 rounded-full"></div>
+              <div className="absolute top-[-40px] right-[50px] w-[140px] h-[140px] bg-white/25 rounded-full"></div>
+            </div>
+          </div>
+          
+          {/* Small Fast Cloud */}
+          <div className="absolute top-[75%] animate-drift" style={{ animationDuration: '60s', animationDelay: '-40s' }}>
+            <div className="w-[250px] h-[60px] bg-white/40 rounded-full relative blur-[3px]">
+              <div className="absolute top-[-30px] left-[30px] w-[100px] h-[100px] bg-white/40 rounded-full"></div>
+              <div className="absolute top-[-50px] left-[90px] w-[130px] h-[130px] bg-white/40 rounded-full"></div>
+              <div className="absolute top-[-20px] right-[30px] w-[80px] h-[80px] bg-white/40 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function SplashScreen({ onNext }) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-blue-500 relative overflow-hidden slide-up-fade">
+          <AnimatedClouds />
+          <div className="z-10 flex flex-col items-center w-full px-4">
+            <div className="animate-breathe mb-12 drop-shadow-2xl">
+              <TitleText text1="WORTSALAT" text2="FAMILIE" className="scale-90 sm:scale-100" />
+            </div>
+            <button onClick={() => { playClick(); startBGM(); onNext(); }} className="btn-ww red px-12 py-4 text-2xl sm:text-3xl tracking-widest hover:scale-105 active:scale-95 transition-transform drop-shadow-lg">
+              ANFANGEN
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function DeveloperProfile({ onNext, onBack }) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-blob relative p-4 slide-up-fade">
+          <BackgroundDecor />
+          <div className="card-ww max-w-4xl w-full p-6 sm:p-10 relative overflow-hidden flex flex-col md:flex-row gap-6 md:gap-10 items-center">
+
+            {onBack && (
+              <button onClick={() => { playClick(); onBack(); }} className="absolute top-4 right-4 bg-wwRed text-white rounded-full p-2 border-2 border-white shadow-[0_0_0_2px_#1e3a8a] z-20 hover:scale-105 active:scale-95 transition-transform">
+                <Icon name="x" size={24} />
+              </button>
+            )}
+
+            {/* Left Side: Large Portrait */}
+            <div className="w-full md:w-2/5 flex-shrink-0 flex justify-center mt-6 md:mt-0">
+              <div className="w-48 md:w-full max-w-[280px] aspect-[3/4] md:aspect-auto md:h-[400px] rounded-[2rem] border-4 border-white overflow-hidden shadow-lg bg-wwBlue">
+                <img src="assets/images/Profil_Pengembang.gif" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop'; }} className="w-full h-full object-cover" />
+              </div>
+            </div>
+
+            {/* Right Side: Text & Nav */}
+            <div className="w-full md:w-3/5 text-center md:text-left flex flex-col items-center md:items-start">
+              <h2 className="font-title text-3xl sm:text-4xl text-white text-shadow-thick mb-4">Profil Pengembang</h2>
+              <div className="inner-box p-5 sm:p-6 mb-6 md:mb-0 w-full relative">
+                <p className="font-bold text-white text-sm sm:text-base leading-relaxed text-justify">
+                  "Hallo, Leute! Kenalin, aku Alanna Diva Saputra, mahasiswi Pendidikan Bahasa Jerman di UNESA. Aku bikin game Wortsalat Familie ini karena aku tahu banget rasanya belajar kosakata itu kadang membosankan kalau cuma lewat buku. Sebagai sesama pencinta game, aku pengen kasih kamu cara yang lebih seru buat jago bahasa Jerman sambil main! Semoga game ini bisa jadi temen belajar yang asyik buat kamu, ya. Viel Spaß beim Spielen!"
+                </p>
+                {onNext && (
+                  <button onClick={() => { playClick(); onNext(); }} className="btn-nav-round hidden md:flex absolute -right-6 -bottom-6">
+                    <Icon name="arrow-right" size={32} className="stroke-[3]" />
+                  </button>
+                )}
+              </div>
+              {onNext && (
+                <button onClick={() => { playClick(); onNext(); }} className="btn-nav-round md:hidden relative mt-2 mx-auto">
+                  <Icon name="arrow-right" size={32} className="stroke-[3]" />
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    function Instructions({ onNext, onBack }) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-blob relative p-4 slide-up-fade">
+          <BackgroundDecor />
+          <div className="card-ww max-w-xl w-full p-8 relative">
+            {onBack && (
+              <button onClick={() => { playClick(); onBack(); }} className="absolute top-4 right-4 bg-wwRed text-white rounded-full p-2 border-2 border-white shadow-[0_0_0_2px_#1e3a8a] z-20 hover:scale-105 active:scale-95 transition-transform">
+                <Icon name="x" size={24} />
+              </button>
+            )}
+            <h2 className="font-title text-3xl sm:text-4xl text-center text-white text-shadow-thick mb-6">Petunjuk Penggunaan</h2>
+            <div className="inner-box p-6 mb-6">
+              <ol className="list-decimal list-inside space-y-3 font-bold text-white text-lg leading-relaxed">
+                <li>Buka menu <b>Lernen</b> untuk mempelajari kosakata keluarga.</li>
+                <li>Hafalkan warna artikel (Biru = der, Pink = die, Oranye = das).</li>
+                <li>Masuk ke menu <b>Wortsalat</b> untuk menguji kemampuan Anda.</li>
+                <li>Susun huruf-huruf acak menjadi kata yang benar.</li>
+                <li>Dapatkan skor tertinggi di papan peringkat!</li>
+              </ol>
+            </div>
+            {onNext && (
+              <button onClick={() => { playClick(); onNext(); }} className="btn-nav-round btn-nav-corner">
+                <Icon name="arrow-right" size={32} className="stroke-[3]" />
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function MainMenu({ onNavigate }) {
+      const [isMuted, setIsMuted] = useState(false);
+
+      useEffect(() => {
+        const bgm = document.getElementById('bgm');
+        if (bgm) setIsMuted(bgm.muted);
+      }, []);
+
+      const toggleMute = () => {
+        playClick();
+        const bgm1 = document.getElementById('bgm');
+        const bgm2 = document.getElementById('bgm-2');
+        let muted = false;
+        if (bgm1) { bgm1.muted = !bgm1.muted; muted = bgm1.muted; }
+        if (bgm2) bgm2.muted = muted;
+        setIsMuted(muted);
+      };
+
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-blob relative p-4 slide-up-fade">
+          <BackgroundDecor />
+
+          {/* Top Left Icons */}
+          <div className="absolute top-6 left-6 flex gap-3 z-20">
+            <button onClick={toggleMute} className={`rounded-full p-3 border-4 border-white shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none transition-all ${isMuted ? 'bg-wwRed text-white' : 'bg-wwYellow text-wwDarkBlue'}`}>
+              <Icon name={isMuted ? "volume-x" : "volume-2"} size={28} />
+            </button>
+            <button onClick={() => { playClick(); onNavigate('menu_profile'); }} className="bg-wwRed text-white rounded-full p-3 border-4 border-white shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none transition-all">
+              <Icon name="info" size={28} />
+            </button>
+            <button onClick={() => { playClick(); onNavigate('menu_instructions'); }} className="bg-wwRed text-white rounded-full p-3 border-4 border-white shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none transition-all">
+              <Icon name="help-circle" size={28} />
+            </button>
+          </div>
+
+          {/* Top Right Icons */}
+          <div className="absolute top-6 right-6 flex gap-3 z-20">
+            <button onClick={() => { playClick(); onNavigate('ranking'); }} className="bg-white text-wwDarkBlue rounded-full p-3 border-4 border-wwDarkBlue shadow-[0_4px_0_0_#1e3a8a] active:translate-y-1 active:shadow-none transition-all">
+              <Icon name="trophy" size={28} />
+            </button>
+          </div>
+
+          <TitleText text1="WORTSALAT" text2="FAMILIE" className="mb-12 scale-75 sm:scale-100 z-10 animate-breathe" />
+
+          <div className="flex flex-col sm:flex-row gap-6 z-10 w-full max-w-3xl justify-center px-4">
+            <button onClick={() => { playClick(); onNavigate('lernen'); }} className="btn-ww red px-8 py-6 text-xl sm:text-2xl flex-1 flex items-center justify-center gap-4">
+              <div className="bg-white text-wwRed p-2 rounded-xl"><Icon name="book-open" size={32} /></div>
+              AYO BELAJAR
+            </button>
+            <button onClick={() => { playClick(); onNavigate(localStorage.getItem('namaPemain') ? 'level_select' : 'login'); }} className="btn-ww px-8 py-6 text-xl sm:text-2xl flex-1 flex items-center justify-center gap-4">
+              AYO BERMAIN
+              <div className="bg-white text-wwBlue p-2 rounded-xl"><Icon name="gamepad-2" size={32} /></div>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function LoginScreen({ onNext, onBack }) {
+      const [name, setName] = useState('');
+      const [password, setPassword] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        if (!name || !password) return;
+        playClick();
+        setIsLoading(true);
+
+        try {
+          const payload = {
+            action: 'login',
+            nama: name,
+            sandi: password
+          };
+
+          await fetch('https://script.google.com/macros/s/AKfycbwm25x5aiH4ILUuibHYpmi8Eaw1946e6i8D7IoLPkwJxYT4bUAsb_iznywFE9P5YuRdOg/exec', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: {
+              // Menggunakan text/plain agar terhindar dari error CORS Preflight (OPTIONS) di browser, 
+              // Google Apps Script tetap bisa mem-parsing isinya menggunakan JSON.parse(e.postData.contents)
+              'Content-Type': 'text/plain;charset=utf-8'
+            }
+          });
+          
+          localStorage.setItem('namaPemain', name);
+          localStorage.setItem('sandiPemain', password);
+          onNext(name);
+        } catch (error) {
+          console.error('Error logging in:', error);
+          alert('Gagal terhubung ke server. Pastikan internet Anda aktif.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-blob relative p-4 slide-up-fade">
+          <BackgroundDecor />
+          <div className="card-ww max-w-md w-full p-8 relative">
+            <button onClick={() => { playClick(); onBack(); }} className="absolute top-4 right-4 bg-wwRed text-white rounded-full p-2 border-2 border-white shadow-[0_0_0_2px_#1e3a8a] z-20 hover:scale-105 active:scale-95 transition-transform" disabled={isLoading}>
+              <Icon name="x" size={24} />
+            </button>
+            <h2 className="font-title text-2xl sm:text-3xl text-center text-white text-shadow-thick mb-8">MASUK UNTUK MENYIMPAN PROGRESS</h2>
+
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="inner-box p-6 space-y-4">
+                <div>
+                  <label className="block text-white font-bold mb-2">NAMA PEMAIN</label>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading}
+                    className="w-full p-3 rounded-xl text-wwDarkBlue font-bold text-lg border-4 border-white focus:outline-none disabled:opacity-50" placeholder="Masukkan nama..." />
+                </div>
+                <div>
+                  <label className="block text-white font-bold mb-2">KATA SANDI</label>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading}
+                    className="w-full p-3 rounded-xl text-wwDarkBlue font-bold text-lg border-4 border-white focus:outline-none disabled:opacity-50" placeholder="***" />
+                </div>
+              </div>
+              <button type="submit" disabled={isLoading} className="btn-ww w-full py-4 text-2xl flex justify-center items-center gap-2">
+                {isLoading ? <Icon name="loader-2" className="animate-spin" size={28} /> : null}
+                {isLoading ? "MEMUAT..." : "MASUK / DAFTAR"}
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    function RankingScreen({ playerName, finalScore, onBack }) {
+      const [leaderboard, setLeaderboard] = useState([]);
+      const [isLoading, setIsLoading] = useState(true);
+      const [expandedPlayer, setExpandedPlayer] = useState(null);
+
+      useEffect(() => {
+        const fetchRanking = async () => {
+          try {
+            const payload = { action: 'get_ranking' };
+            const res = await fetch('https://script.google.com/macros/s/AKfycbwm25x5aiH4ILUuibHYpmi8Eaw1946e6i8D7IoLPkwJxYT4bUAsb_iznywFE9P5YuRdOg/exec', {
+              method: 'POST',
+              body: JSON.stringify(payload),
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            });
+            const data = await res.json();
+            
+            const grouped = {};
+            data.forEach((row, index) => {
+              const name = row.nama;
+              if (!grouped[name]) {
+                grouped[name] = { name: name, history: [], bestScore: -1, bestTime: Infinity };
+              }
+              const score = Number(row.skor) || 0;
+              const time = Number(row.waktu) || 0;
+              
+              const attempt = { ...row, skor: score, waktu: time, originalIndex: index };
+              grouped[name].history.push(attempt);
+              
+              if (score > grouped[name].bestScore || (score === grouped[name].bestScore && time < grouped[name].bestTime)) {
+                grouped[name].bestScore = score;
+                grouped[name].bestTime = time;
+                grouped[name].bestAttempt = attempt;
+              }
+            });
+
+            const sorted = Object.values(grouped).sort((a, b) => {
+              if (b.bestScore !== a.bestScore) return b.bestScore - a.bestScore;
+              return a.bestTime - b.bestTime;
+            });
+            
+            setLeaderboard(sorted);
+          } catch (e) {
+            console.error('Fetch ranking error:', e);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+        fetchRanking();
+      }, []);
+
+      const getMedalColor = (index) => {
+        if (index === 0) return 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]';
+        if (index === 1) return 'text-gray-300 drop-shadow-[0_0_8px_rgba(209,213,219,0.8)]';
+        if (index === 2) return 'text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]';
+        return 'text-white';
+      };
+
+      const formatTime = (secs) => {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m > 0 ? m + 'm ' : ''}${s}s`;
+      };
+
+      return (
+        <div className="flex flex-col items-center min-h-screen bg-blob relative p-4 slide-up-fade overflow-y-auto">
+          <BackgroundDecor />
+          <div className="card-ww max-w-3xl w-full p-4 sm:p-8 relative mt-6 mb-6">
+            <button onClick={() => { playClick(); onBack(); }} className="absolute top-4 right-4 bg-wwRed text-white rounded-full p-2 border-2 border-white shadow-[0_0_0_2px_#1e3a8a] z-20 hover:scale-105 active:scale-95 transition-transform">
+              <Icon name="x" size={24} />
+            </button>
+            <Icon name="trophy" size={60} className="text-wwYellow mx-auto mb-2 drop-shadow-lg" />
+            <h2 className="font-title text-3xl sm:text-4xl text-center text-white text-shadow-thick mb-6">PAPAN PERINGKAT</h2>
+
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Icon name="loader-2" size={48} className="text-white animate-spin mb-4" />
+                <p className="text-white font-bold text-xl animate-pulse">Memuat data...</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {leaderboard.map((player, index) => (
+                  <div key={player.name} className="flex flex-col">
+                    <div 
+                      onClick={() => { playClick(); setExpandedPlayer(expandedPlayer === player.name ? null : player.name); }}
+                      className={`relative flex items-center justify-between p-4 rounded-xl border-4 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] ${playerName === player.name ? 'bg-wwYellow border-white' : 'bg-wwDarkBlue border-wwBlue'} ${expandedPlayer === player.name ? 'rounded-b-none border-b-0' : ''}`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 flex justify-center">
+                          {index < 3 ? (
+                            <Icon name="trophy" size={28} className={getMedalColor(index)} />
+                          ) : (
+                            <span className="font-title text-2xl text-white">{index + 1}</span>
+                          )}
+                        </div>
+                        <span className={`font-bold text-lg sm:text-xl truncate max-w-[120px] sm:max-w-[200px] ${playerName === player.name ? 'text-wwDarkBlue' : 'text-white'}`}>{player.name}</span>
+                      </div>
+                      <div className={`flex items-center gap-4 font-title text-xl sm:text-2xl ${playerName === player.name ? 'text-wwRed' : 'text-wwYellow'}`}>
+                        <span>{player.bestScore}</span>
+                        <span className="text-sm sm:text-base font-sans opacity-80">{formatTime(player.bestTime)}</span>
+                        <Icon name={expandedPlayer === player.name ? "chevron-up" : "chevron-down"} size={20} className="text-white" />
+                      </div>
+                    </div>
+                    
+                    {/* Expandable History */}
+                    {expandedPlayer === player.name && (
+                      <div className={`p-4 rounded-b-xl border-4 border-t-0 slide-down-fade space-y-2 ${playerName === player.name ? 'bg-wwYellow border-white' : 'bg-wwDarkBlue border-wwBlue'}`}>
+                        <div className={`text-xs font-bold mb-2 uppercase ${playerName === player.name ? 'text-wwDarkBlue' : 'text-white/70'}`}>Riwayat Bermain:</div>
+                        {player.history.map((attempt, i) => {
+                          const isBest = attempt.originalIndex === player.bestAttempt.originalIndex;
+                          return (
+                            <div key={i} className={`flex justify-between items-center p-2 rounded-lg ${isBest ? 'bg-green-500 text-white border-2 border-white font-bold shadow-md' : (playerName === player.name ? 'bg-white/30 text-wwDarkBlue' : 'bg-white/10 text-white')}`}>
+                              <div className="flex flex-col sm:flex-row sm:gap-2">
+                                <span>Percobaan {i + 1} {isBest ? '(Skor Utama)' : ''}</span>
+                                <span className="text-xs opacity-80 sm:mt-1">{attempt.tanggal}</span>
+                              </div>
+                              <div className="flex gap-4 text-sm sm:text-base">
+                                <span>Skor: {attempt.skor}</span>
+                                <span>Waktu: {formatTime(attempt.waktu)}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {leaderboard.length === 0 && (
+                  <div className="text-center text-white py-8 font-bold">Belum ada data peringkat.</div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [currentScreen, setCurrentScreen] = useState('splash');
+      const [playerName, setPlayerName] = useState(localStorage.getItem('namaPemain') || '');
+      const [finalScore, setFinalScore] = useState(0); // Cumulative score across levels
+      const [gameStartTime, setGameStartTime] = useState(null);
+
+      const [unlockedLevel, setUnlockedLevel] = useState(1);
+      const [selectedLevel, setSelectedLevel] = useState(1);
+
+      const submitScoreToGAS = async (nama, skor, waktu) => {
+        try {
+          const payload = {
+            action: 'save_score',
+            nama: nama,
+            skor: skor,
+            waktu: waktu,
+            tanggal: new Date().toLocaleString('id-ID')
+          };
+          fetch('https://script.google.com/macros/s/AKfycbwm25x5aiH4ILUuibHYpmi8Eaw1946e6i8D7IoLPkwJxYT4bUAsb_iznywFE9P5YuRdOg/exec', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+          });
+        } catch (e) {
+          console.error('Error saving score:', e);
+        }
+      };
+
+      useEffect(() => {
+        if (currentScreen !== 'splash') {
+          if (currentScreen === 'wortsalat' || currentScreen === 'level_result') {
+            startBGM('game');
+          } else {
+            startBGM('menu');
+          }
+        }
+      }, [currentScreen]);
+
+      const navigateTo = (screen) => { window.scrollTo(0, 0); setCurrentScreen(screen); };
+
+      const handleLevelSelect = (level) => {
+        setSelectedLevel(level);
+        if (level === 1) {
+          setGameStartTime(Date.now());
+          setFinalScore(0);
+        }
+        navigateTo('wortsalat');
+      };
+
+      const handleLevelFinish = (correctAnswers, totalQuestions) => {
+        const percentage = (correctAnswers / totalQuestions) * 100;
+        setFinalScore(s => s + (correctAnswers * 100)); // 100 pts per correct answer globally
+
+        if (percentage >= 50 && selectedLevel === unlockedLevel && unlockedLevel < 3) {
+          setUnlockedLevel(unlockedLevel + 1); // Unlock next level
+        }
+
+        navigateTo('level_result');
+      };
+
+      return (
+        <div className="app-container">
+          {currentScreen === 'splash' && <SplashScreen onNext={() => navigateTo('profile')} />}
+          {currentScreen === 'profile' && <DeveloperProfile onNext={() => navigateTo('instructions')} />}
+          {currentScreen === 'instructions' && <Instructions onNext={() => navigateTo('main')} />}
+          {currentScreen === 'menu_profile' && <DeveloperProfile onBack={() => navigateTo('main')} />}
+          {currentScreen === 'menu_instructions' && <Instructions onBack={() => navigateTo('main')} />}
+          {currentScreen === 'main' && <MainMenu onNavigate={navigateTo} />}
+          {currentScreen === 'login' && <LoginScreen onNext={(name) => { setPlayerName(name); navigateTo('level_select'); }} onBack={() => navigateTo('main')} />}
+          {currentScreen === 'level_select' && <LevelSelectScreen unlockedLevel={unlockedLevel} onSelectLevel={handleLevelSelect} onBack={() => navigateTo('main')} />}
+          {currentScreen === 'lernen' && <LernenScreen onBack={() => navigateTo('main')} onNavigate={navigateTo} />}
+          {currentScreen === 'wortsalat' && <WortsalatScreen level={selectedLevel} onFinish={handleLevelFinish} onBack={() => navigateTo('level_select')} />}
+          {currentScreen === 'level_result' && (
+            <LevelResultScreen
+              score={finalScore % 2000 === 0 && finalScore > 0 ? 20 : Math.round((finalScore % 2000) / 100)} // Approximate correct answers for the level based on score logic
+              total={20}
+              onRetry={() => navigateTo('wortsalat')}
+              onNextLevel={() => {
+                if (selectedLevel < 3) {
+                  setSelectedLevel(selectedLevel + 1);
+                  navigateTo('wortsalat');
+                } else {
+                  const tTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+                  submitScoreToGAS(playerName, finalScore, tTime);
+                  navigateTo('ranking'); // Finished all levels
+                }
+              }}
+              onMenu={() => navigateTo('level_select')}
+            />
+          )}
+          {currentScreen === 'ranking' && <RankingScreen playerName={playerName} finalScore={finalScore} onBack={() => navigateTo('main')} />}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
+</html>
