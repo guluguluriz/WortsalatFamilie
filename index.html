@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Telah Dihapus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-dark-green: #1db954;
+            --spotify-green: #1ed760;
+            --text-color: #ffffff;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--spotify-black);
+            color: var(--text-color);
+            overflow: hidden; /* Mencegah scroll karena gelombang */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .wave-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0; /* Di belakang konten */
+            opacity: 0.6; /* Ditingkatkan sedikit agar gelombang lebih terlihat */
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%; /* Lebih lebar dari layar untuk animasi mulus */
+            height: 200px; /* Ditinggikan sedikit untuk efek natural */
+            /* Menggunakan kurva bezier cubic yang lebih kompleks untuk gelombang natural */
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,80 C150,120 350,0 600,60 C850,120 1050,0 1200,80 L1200,120 L0,120 Z" fill="%231db954" opacity="0.3"/></svg>') repeat-x;
+            background-size: 50% 100%;
+            animation: moveWave 12s linear infinite; /* Sedikit diperlambat untuk ketenangan */
+        }
+
+        /* Gelombang kedua untuk efek parallax/berlapis */
+        .wave:nth-child(2) {
+            bottom: -10px; /* Sedikit bergeser secara vertikal */
+            animation: moveWave 18s linear infinite reverse; /* Kecepatan berbeda */
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,60 C200,10 400,110 600,50 C800,-10 1000,110 1200,60 L1200,120 L0,120 Z" fill="%231ed760" opacity="0.2"/></svg>') repeat-x;
+            background-size: 50% 100%;
+        }
+        
+        /* Tambahan gelombang ketiga untuk kedalaman ekstra */
+        .wave:nth-child(3) {
+            bottom: 10px;
+            animation: moveWave 22s linear infinite;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,40 C250,-20 350,140 600,60 C850,-20 950,140 1200,40 L1200,120 L0,120 Z" fill="%231db954" opacity="0.15"/></svg>') repeat-x;
+            background-size: 50% 100%;
+        }
+
+        @keyframes moveWave {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 10; /* Di atas gelombang */
+            text-align: center;
+            padding: 2rem;
+            background: rgba(18, 18, 18, 0.7); /* Background semi-transparan untuk keterbacaan */
+            backdrop-filter: blur(10px); /* Efek kaca kekinian */
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(29, 185, 84, 0.2);
+            transition: transform 0.3s ease;
+            width: 90%; /* Menggunakan persentase untuk lebar */
+            max-width: 600px; /* Batas lebar maksimal untuk layar besar */
+            box-sizing: border-box; /* Memastikan padding tidak menambah lebar elemen */
+        }
+
+        .content-wrapper:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(29, 185, 84, 0.2);
+        }
+
+        .small-text {
+            font-size: 0.875rem; /* text-sm */
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #b3b3b3;
+            margin-bottom: 2vw; /* Jarak responsif menggunakan vw */
+            font-weight: 700;
+        }
+
+        .large-text {
+            /* Menggunakan fungsi clamp() untuk font-size dinamis: minimum, preferensi (berdasarkan lebar viewport), maksimum */
+            font-size: clamp(2.5rem, 8vw, 5rem); 
+            font-weight: 900;
+            line-height: 1.1;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff, var(--spotify-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Tambahan bayangan untuk kedalaman walau pakai gradient text */
+        }
+        
+        /* Fallback text shadow jika browser tidak dukung background-clip */
+        @supports not (-webkit-background-clip: text) {
+            .large-text {
+                background: none;
+                color: var(--spotify-green);
+                text-shadow: none;
+            }
+        }
+
+        /* Penyesuaian responsif tambahan (opsional karena sudah pakai clamp, tapi baik untuk margin/padding) */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+            .small-text {
+                font-size: 0.75rem;
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wave-container">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div> <!-- Tambahan div untuk gelombang ketiga -->
+    </div>
+
+    <div class="content-wrapper">
+        <div class="small-text">GAME INI TELAH DIHAPUS</div>
+        <div class="flex flex-col gap-1">
+            <h1 class="large-text">MINTA</h1>
+            <h1 class="large-text">"DONI" MU</h1>
+            <h1 class="large-text">BUATIN</h1>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bgMusic = new Audio('assets/music/heather.mp3');
+            bgMusic.loop = true;
+            
+            // Mencoba memutar audio secara otomatis
+            const playPromise = bgMusic.play();
+            
+            // Penanganan jika browser memblokir autoplay (Kebijakan default Chrome/Safari/Firefox)
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Autoplay diblokir oleh browser. Menunggu interaksi pengguna...");
+                    
+                    // Jika diblokir, mainkan musik saat pengguna menyentuh/mengklik layar untuk pertama kalinya
+                    const startPlay = () => {
+                        bgMusic.play();
+                        document.removeEventListener('click', startPlay);
+                        document.removeEventListener('touchstart', startPlay);
+                    };
+                    
+                    document.addEventListener('click', startPlay);
+                    document.addEventListener('touchstart', startPlay);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
